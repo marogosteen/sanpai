@@ -17,7 +17,7 @@ if CROSS_NUM % 2 != 0:
     raise ValueError("")
 
 temple_group = []
-with open(DATASET_PATH) as f:
+with open(DATASET_PATH, encoding="utf-8") as f:
     for line in f.readlines():
         line = line.strip().split()
         temple_group.append(
