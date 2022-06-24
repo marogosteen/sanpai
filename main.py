@@ -44,29 +44,23 @@ for gene in range(GENERATION):
 
     ga.replace_elite_dnas(elite_dnas)
     score_list = ga.scores(ga.dna_group)
-    best_score = min(score_list)
-
-    if best_score > before_score:
-        print(
-            "error",
-            f"before_score: {before_score}",
-            f"best_score: {best_score}",
-            sep="\n")
+    after_score = min(score_list)
 
     if gene % 200 == 0:
-        print(f"{gene} min: ", round(best_score, 3), "km")
-    before_score = best_score
+        print(f"{gene} min: ", round(after_score, 3), "km")
+    before_score = after_score
 
-score_list = ga.scores(ga.dna_group, selection=True)
-ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
-for i, dna_i in enumerate(ranking):
-    print(f"{i}: {dna_i}".ljust(10), ga.dna_group[dna_i], round(score_list[dna_i], 3))
+ga.show_ranking()
 
-most_elite = ga.dna_group[score_list.index(best_score)]
+most_elite = ga.dna_group[score_list.index(after_score)]
 print(
-    f"\n{gene+1} min: {round(best_score, 3)} km",
+    f"\n{gene+1} min: {round(after_score, 3)} km",
     f"most elitte: {most_elite}",
     f"sec: {round(time.time() - start_time, 1)}",
     f"elite num: {ELITE_NUM}",
     sep="\n",
     end="\n\n")
+
+print("elite")
+for dna in elite_dnas:
+    print(dna)

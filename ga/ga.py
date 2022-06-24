@@ -56,53 +56,46 @@ class Ga:
                 score += self.__temple_gourp.distance(start_id, goal_id)
             score_list.append(score)
 
+        # 最終結果の表示などは淘汰圧を必要としない．
         if selection:
             return score_list
 
         max_score = max(score_list)
-        reverse_sorted_dna_indices = sorted(
+        reverse_ranking = sorted(
             range(len(score_list)), key=score_list.__getitem__, reverse=True)
-        for i in range(len(reverse_sorted_dna_indices) - 1):
-            dna_index = reverse_sorted_dna_indices[i]
+        for i in range(1, len(reverse_ranking)):
+            dna_index = reverse_ranking[i-1]
             dna = self.dna_group[dna_index]
+            good_dna_index = reverse_ranking[i]
+            good_dna = self.dna_group[good_dna_index]
 
-            for j in range(1, 6):
-                good_dna_index: int = None
-                try:
-                    good_dna_index = reverse_sorted_dna_indices[i + j]
-                except IndexError:
-                    break
-                good_dna = self.dna_group[good_dna_index]
-                
-                #magic number
-                if self.dna_size - max(match_count(dna[-1::-1], good_dna), match_count(dna, good_dna)) > 6:
-                    score_list[dna_index] = max_score
-                    break
+            # if dna == good_dna or dna[-1::-1] == good_dna:
+            if max(match_count(dna[-1::-1], good_dna), match_count(dna, good_dna)) >= self.dna_size - 2:
+                score_list[dna_index] = max_score
 
         return score_list
 
-    def elite_dnas(self, original_score_list: list[float], elite_count: int) -> list[list]:
+    def elite_dnas(self, score_list: list[float], elite_count: int) -> list[list]:
         if elite_count > self.group_size:
             raise ValueError(
                 "the value of elite_count is greater than gropu_size.")
 
         elite_dnas = []
-        sorted_score_list = sorted(original_score_list)
-        for _ in range(elite_count):
-            good_score = sorted_score_list.pop(0)
-            index = original_score_list.index(good_score)
-            dna = self.dna_group[index].copy()
-            elite_dnas.append(dna)
+        ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
+        for dna_index in ranking[:elite_count]:
+            dna = self.dna_group[dna_index]
+            elite_dnas.append(dna.copy())
 
         return elite_dnas
 
     def replace_elite_dnas(self, elite_dnas: list[list]) -> None:
         # 新しくscore計算した方が多様性の担保できる
         score_list = self.scores(self.dna_group)
-        sorted_indices = sorted(
-            range(len(score_list)), key=score_list.__getitem__, reverse=True)
-        for i, elite in zip(sorted_indices, elite_dnas):
-            self.dna_group[i] = elite
+        reverse_ranking = sorted(
+            range(len(score_list)), key=score_list.__getitem__)[-1::-1]
+
+        for dna_index, elite in zip(reverse_ranking, elite_dnas):
+            self.dna_group[dna_index] = elite
 
     def tournament(self, score_list: list[float], select_size: int, tournament_size: int = 2) -> list[int]:
         if select_size > self.__group_size//2:
@@ -172,3 +165,10 @@ class Ga:
         dna = []
         for s in strings:
             dna.append(S.index(s))
+
+    def show_ranking(self):
+        score_list = self.scores(self.dna_group, selection=True)
+        ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
+        for i, dna_i in enumerate(ranking):
+            print(f"{i}: {dna_i}".ljust(10),
+                  self.dna_group[dna_i], round(score_list[dna_i], 3))
