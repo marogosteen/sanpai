@@ -11,6 +11,7 @@ MUTATE_INDEX_COUNT = 2
 INVERSUS_INDEX_COUNT = 2
 TRANS_INDEX_COUNT = 2
 CROSS_INDEX_COUNT = 2
+NOT_MATCH = 4
 S = string.digits+string.ascii_lowercase
 
 
@@ -60,6 +61,9 @@ class Ga:
         if selection:
             return score_list
 
+        return self.selection(score_list)
+
+    def selection(self, score_list: list[float]) -> list[float]:
         max_score = max(score_list)
         reverse_ranking = sorted(
             range(len(score_list)), key=score_list.__getitem__, reverse=True)
@@ -68,11 +72,8 @@ class Ga:
             dna = self.dna_group[dna_index]
             good_dna_index = reverse_ranking[i]
             good_dna = self.dna_group[good_dna_index]
-
-            # if dna == good_dna or dna[-1::-1] == good_dna:
-            if max(match_count(dna[-1::-1], good_dna), match_count(dna, good_dna)) >= self.dna_size - 2:
+            if max(match_count(dna[-1::-1], good_dna), match_count(dna, good_dna)) >= self.dna_size - NOT_MATCH:
                 score_list[dna_index] = max_score
-
         return score_list
 
     def elite_dnas(self, score_list: list[float], elite_count: int) -> list[list]:
@@ -170,5 +171,6 @@ class Ga:
         score_list = self.scores(self.dna_group, selection=True)
         ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
         for i, dna_i in enumerate(ranking):
-            print(f"{i}: {dna_i}".ljust(10),
-                  self.dna_group[dna_i], round(score_list[dna_i], 3))
+            print(
+                f"{i}: {dna_i} {round(score_list[dna_i], 3)} km".ljust(22),
+                self.dna_group[dna_i])

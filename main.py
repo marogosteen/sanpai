@@ -8,8 +8,8 @@ MUTATION_NUM = 20
 INVERSUS_NUM = 20
 TRANSLOCATION_NUM = 20
 CROSS_NUM = 20
-ELITE_NUM = 25
-GENERATION = 8192
+ELITE_NUM = 10
+STOP_TRIGGER = 3000
 
 # 交差は２個体が必要．child_coundが奇数だとStopIterationErrorが生じる．
 if CROSS_NUM % 2 != 0:
@@ -34,7 +34,12 @@ ga = Ga(temple_group)
 start_time = time.time()
 score_list = ga.scores(ga.dna_group)
 before_score = min(score_list)
-for gene in range(GENERATION):
+counter = 0
+while True:
+    counter += 1
+    if counter == STOP_TRIGGER:
+        break
+
     elite_dnas = ga.elite_dnas(score_list, ELITE_NUM)
 
     ga.mutation(ga.tournament(score_list, MUTATION_NUM))
@@ -46,21 +51,18 @@ for gene in range(GENERATION):
     score_list = ga.scores(ga.dna_group)
     after_score = min(score_list)
 
-    if gene % 200 == 0:
-        print(f"{gene} min: ", round(after_score, 3), "km")
+    if counter % 200 == 0:
+        print(f"{counter} min: ", round(after_score, 3), "km")
+
+    if before_score > after_score:
+        counter = 0
+
     before_score = after_score
 
+print("\nDone\n")
 ga.show_ranking()
-
-most_elite = ga.dna_group[score_list.index(after_score)]
 print(
-    f"\n{gene+1} min: {round(after_score, 3)} km",
-    f"most elitte: {most_elite}",
-    f"sec: {round(time.time() - start_time, 1)}",
+    f"\nsec: {round(time.time() - start_time, 1)}",
     f"elite num: {ELITE_NUM}",
     sep="\n",
     end="\n\n")
-
-print("elite")
-for dna in elite_dnas:
-    print(dna)
