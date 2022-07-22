@@ -42,7 +42,7 @@ class Ga:
             random.shuffle(dna)
             self.dna_group.append(dna)
 
-    def scores(self, dna_list: list[list], selection: bool = False) -> list[float]:
+    def scores(self, dna_list: list[list], selection: bool = True) -> list[float]:
         score_list = []
         for dna in dna_list:
             score = 0
@@ -58,7 +58,7 @@ class Ga:
             score_list.append(score)
 
         # 最終結果の表示などは淘汰圧を必要としない．
-        if selection:
+        if not selection:
             return score_list
 
         return self.selection(score_list)
@@ -89,7 +89,7 @@ class Ga:
 
         return elite_dnas
 
-    def replace_elite_dnas(self, elite_dnas: list[list]) -> None:
+    def replace_dnas(self, elite_dnas: list[list]) -> None:
         # 新しくscore計算した方が多様性の担保できる
         score_list = self.scores(self.dna_group)
         reverse_ranking = sorted(
@@ -119,31 +119,41 @@ class Ga:
 
         return selected_dnas
 
-    def mutation(self, dna_indices: list) -> None:
+    def mutation(self, dna_indices: list) -> list:
+        mutated_dnas = []
         for dna_index in dna_indices:
             selected_dna = self.dna_group[dna_index].copy()
             mutate_indices = random.sample(
                 range(self.dna_size), k=MUTATE_INDEX_COUNT)
-            self.dna_group[dna_index] = algo.mutation(
+            mutated_dnas.append(algo.mutation(
                 selected_dna, mutate_indices)
+            )
+        return mutated_dnas
 
-    def inversus(self, dna_indices: list) -> None:
+    def inversus(self, dna_indices: list) -> list:
+        mutated_dnas = []
         for dna_index in dna_indices:
             selected_dna = self.dna_group[dna_index].copy()
             inversus_indices = random.sample(
                 range(self.dna_size+1), k=INVERSUS_INDEX_COUNT)
-            self.dna_group[dna_index] = algo.inversus(
+            mutated_dnas.append(algo.inversus(
                 selected_dna, inversus_indices)
+            )
+        return mutated_dnas
 
-    def translocation(self, dna_indices: list) -> None:
+    def translocation(self, dna_indices: list) -> list:
+        mutated_dnas = []
         for dna_index in dna_indices:
             selected_dna = self.dna_group[dna_index]
             start, end = sorted(random.sample(
                 range(self.dna_size+1), k=TRANS_INDEX_COUNT))
-            self.dna_group[dna_index] = algo.translocation(
-                selected_dna, start, end)
+            mutated_dnas.append(
+                algo.translocation(selected_dna, start, end)
+            )
+        return mutated_dnas
 
-    def cross(self, dna_indices: list) -> None:
+    def cross(self, dna_indices: list) -> list:
+        mutated_dnas = []
         while len(dna_indices) > 0:
             dna_index1 = dna_indices.pop(0)
             dna_index2 = dna_indices.pop(0)
@@ -151,10 +161,8 @@ class Ga:
             parent2 = self.dna_group[dna_index2].copy()
             start, end = sorted(
                 random.sample(range(self.dna_size), k=CROSS_INDEX_COUNT))
-
-            child1, child2 = algo.cross(parent1, parent2, start, end)
-            self.dna_group[dna_index1] = child1
-            self.dna_group[dna_index2] = child2
+            mutated_dnas.extend(algo.cross(parent1, parent2, start, end))
+            return mutated_dnas
 
     def __dna_to_string(self, dna: list[int]) -> string:
         result = ""
@@ -168,9 +176,10 @@ class Ga:
             dna.append(S.index(s))
 
     def show_ranking(self):
-        score_list = self.scores(self.dna_group, selection=True)
+        score_list = self.scores(self.dna_group, selection=False)
         ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
         for i, dna_i in enumerate(ranking):
             print(
-                f"{i}: {dna_i} {round(score_list[dna_i], 3)} km".ljust(22),
+                f"{i}: {dna_i}".ljust(8),
+                f"{round(score_list[dna_i], 3)} km".ljust(13),
                 self.dna_group[dna_i])

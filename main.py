@@ -42,12 +42,15 @@ while True:
 
     elite_dnas = ga.elite_dnas(score_list, ELITE_NUM)
 
-    ga.mutation(ga.tournament(score_list, MUTATION_NUM))
-    ga.inversus(ga.tournament(score_list, INVERSUS_NUM))
-    ga.translocation(ga.tournament(score_list, TRANSLOCATION_NUM))
-    ga.cross(ga.tournament(score_list, CROSS_NUM))
+    mutated_dnas = []
+    mutated_dnas.extend(ga.mutation(ga.tournament(score_list, MUTATION_NUM)))
+    mutated_dnas.extend(ga.inversus(ga.tournament(score_list, INVERSUS_NUM)))
+    mutated_dnas.extend(ga.translocation(
+        ga.tournament(score_list, TRANSLOCATION_NUM)))
+    mutated_dnas.extend(ga.cross(ga.tournament(score_list, CROSS_NUM)))
 
-    ga.replace_elite_dnas(elite_dnas)
+    ga.replace_dnas(mutated_dnas)
+    ga.replace_dnas(elite_dnas)
     score_list = ga.scores(ga.dna_group)
     after_score = min(score_list)
 

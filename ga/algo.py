@@ -32,7 +32,7 @@ def translocation(selected_dna: list, start: int, end: int) -> list[int]:
     return selected_dna
 
 
-def cross(parent1: list, parent2: list, start: int, end: int) -> list[int]:
+def cross(parent1: list, parent2: list, start: int, end: int) -> list[list]:
     part1 = parent1[start:end]
     part2 = parent2[start:end]
     popped_dna1 = multi_pop(parent1, start, end)
@@ -55,7 +55,7 @@ def cross(parent1: list, parent2: list, start: int, end: int) -> list[int]:
     child1[start:start] = part2
     child2[start:start] = part1
 
-    return child1, child2
+    return [child1, child2]
 
 
 @lru_cache(maxsize=4096)
