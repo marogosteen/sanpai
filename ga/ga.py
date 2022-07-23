@@ -38,9 +38,12 @@ class Ga:
         self.__dna_size = temple_count - 1
         self.dna_group: list[list] = []
         for _ in range(self.__group_size):
-            dna = list(range(1, temple_count))
-            random.shuffle(dna)
-            self.dna_group.append(dna)
+            self.dna_group.append(self.new_dna())
+
+    def new_dna(self) -> list[int]:
+        dna = list(range(1, self.dna_size+1))
+        random.shuffle(dna)
+        return dna
 
     def scores(self, dna_list: list[list], selection: bool = True) -> list[float]:
         score_list = []
