@@ -2,14 +2,19 @@ import time
 
 import temple
 from ga import Ga
+from services import WriteLogService
 
 DATASET_PATH = "data/Location33.DAT"
-MUTATION_NUM = 20
-INVERSUS_NUM = 20
-TRANSLOCATION_NUM = 20
-CROSS_NUM = 20
-ELITE_NUM = 10
+MUTATION_NUM = 70
+INVERSUS_NUM = 70
+TRANSLOCATION_NUM = 70
+CROSS_NUM = 70
+ELITE_NUM = 20
 STOP_TRIGGER = 3000
+GROUP_SIZE = 500
+
+service = WriteLogService()
+service.make_log_directory()
 
 # 交差は２個体が必要．child_coundが奇数だとStopIterationErrorが生じる．
 if CROSS_NUM % 2 != 0:
@@ -29,7 +34,7 @@ with open(DATASET_PATH, encoding="utf-8") as f:
 
 temple_group = temple.TempleGroup(
     temple_group, start_id=33, goal_id=33)
-ga = Ga(temple_group)
+ga = Ga(temple_group, GROUP_SIZE)
 
 start_time = time.time()
 score_list = ga.scores(ga.dna_group)
@@ -63,7 +68,11 @@ while True:
     before_score = after_score
 
 print("\nDone\n")
-ga.show_ranking()
+
+scores = ga.scores(ga.dna_group, selection=False)
+ranking = sorted(range(len(scores)), key=scores.__getitem__)
+service.write_log(ga.dna_group, scores, ranking)
+
 print(
     f"\nsec: {round(time.time() - start_time, 1)}",
     f"elite num: {ELITE_NUM}",

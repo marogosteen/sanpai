@@ -15,10 +15,6 @@ NOT_MATCH = 4
 S = string.digits+string.ascii_lowercase
 
 
-def match_count(dna1: list[int], dna2: list[int]) -> int:
-    return [e1 == e2 for e1, e2 in zip(dna1, dna2)].count(True)
-
-
 class Ga:
     @property
     def dna_size(self) -> int:
@@ -28,11 +24,15 @@ class Ga:
     def group_size(self) -> int:
         return self.__group_size
 
-    def __init__(self, temple_group: temple.TempleGroup) -> None:
+    def __init__(self, temple_group: temple.TempleGroup, group_size: int = None) -> None:
         self.__temple_gourp = temple_group
         temple_count = len(temple_group)
-        self.__group_size = int(
-            temple_count * math.log(temple_count-1) / math.log(2))
+
+        if group_size:
+            self.__group_size = group_size
+        else:
+            self.__group_size = int(
+                temple_count * math.log(temple_count-1) / math.log(2))
 
         # the start point and goal point are fixed. therefore, it is not included in the DNA.
         self.__dna_size = temple_count - 1
@@ -72,7 +72,7 @@ class Ga:
             dna = self.dna_group[dna_index]
             good_dna_index = reverse_ranking[i]
             good_dna = self.dna_group[good_dna_index]
-            if max(match_count(dna[-1::-1], good_dna), match_count(dna, good_dna)) >= self.dna_size - NOT_MATCH:
+            if good_dna == dna or good_dna == dna[-1::-1]:
                 score_list[dna_index] = max_score
         return score_list
 
@@ -89,14 +89,15 @@ class Ga:
 
         return elite_dnas
 
-    def replace_dnas(self, elite_dnas: list[list]) -> None:
+    def replace_dnas(self, dnas: list[list]) -> None:
         # 新しくscore計算した方が多様性の担保できる
         score_list = self.scores(self.dna_group)
         reverse_ranking = sorted(
             range(len(score_list)), key=score_list.__getitem__)[-1::-1]
 
-        for dna_index, elite in zip(reverse_ranking, elite_dnas):
-            self.dna_group[dna_index] = elite
+        for dna_index, dna in zip(reverse_ranking, dnas):
+            if not dna in self.dna_group:
+                self.dna_group[dna_index] = dna
 
     def tournament(self, score_list: list[float], select_size: int, tournament_size: int = 2) -> list[int]:
         if select_size > self.__group_size//2:
@@ -163,23 +164,3 @@ class Ga:
                 random.sample(range(self.dna_size), k=CROSS_INDEX_COUNT))
             mutated_dnas.extend(algo.cross(parent1, parent2, start, end))
             return mutated_dnas
-
-    def __dna_to_string(self, dna: list[int]) -> string:
-        result = ""
-        for i in dna:
-            result += S[i]
-        return result
-
-    def __string_to_dna(self, strings: str) -> list[int]:
-        dna = []
-        for s in strings:
-            dna.append(S.index(s))
-
-    def show_ranking(self):
-        score_list = self.scores(self.dna_group, selection=False)
-        ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
-        for i, dna_i in enumerate(ranking):
-            print(
-                f"{i}: {dna_i}".ljust(8),
-                f"{round(score_list[dna_i], 3)} km".ljust(13),
-                self.dna_group[dna_i])
