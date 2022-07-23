@@ -1,3 +1,4 @@
+import random
 import time
 
 import temple
@@ -10,7 +11,7 @@ INVERSUS_NUM = 70
 TRANSLOCATION_NUM = 70
 CROSS_NUM = 70
 ELITE_NUM = 20
-STOP_TRIGGER = 3000
+STOP_TRIGGER = 2000
 GROUP_SIZE = 500
 
 service = WriteLogService()
@@ -59,7 +60,14 @@ while True:
     score_list = ga.scores(ga.dna_group)
     after_score = min(score_list)
 
+    if round(after_score, 3) == 803.26:
+        print(f"{counter} min: ", round(after_score, 3), "km")
+        break
+
     if counter % 200 == 0:
+        ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
+        for dna_index in ranking[int(ga.group_size*0.4):]:
+            ga.dna_group[dna_index] = ga.new_dna()
         print(f"{counter} min: ", round(after_score, 3), "km")
 
     if before_score > after_score:
