@@ -1,4 +1,3 @@
-import random
 import time
 
 import temple
@@ -6,13 +5,64 @@ from ga import Ga
 from services import WriteLogService
 
 DATASET_PATH = "data/Location33.DAT"
-MUTATION_NUM = 70
-INVERSUS_NUM = 70
-TRANSLOCATION_NUM = 70
-CROSS_NUM = 70
-ELITE_NUM = 20
-STOP_TRIGGER = 2000
-GROUP_SIZE = 500
+MUTATION_NUM = 20
+INVERSUS_NUM = 20
+TRANSLOCATION_NUM = 20
+CROSS_NUM = 20
+ELITE_NUM = 10
+STOP_TRIGGER = 3000
+GROUP_SIZE = 1000
+CLUSTER = 10
+
+is_exit = False
+
+def hoge(ga: Ga):
+    score_list = ga.scores(ga.dna_group)
+    before_score = min(score_list)
+    counter = 0
+    no_progress = 0
+    while True:
+        counter += 1
+        no_progress += 1
+        if no_progress == STOP_TRIGGER:
+            break
+
+        elite_dnas = ga.elite_dnas(score_list, ELITE_NUM)
+
+        mutated_dnas = []
+        mutated_dnas.extend(ga.mutation(ga.tournament(score_list, MUTATION_NUM)))
+        mutated_dnas.extend(ga.inversus(ga.tournament(score_list, INVERSUS_NUM)))
+        mutated_dnas.extend(ga.translocation(
+            ga.tournament(score_list, TRANSLOCATION_NUM)))
+        mutated_dnas.extend(ga.cross(ga.tournament(score_list, CROSS_NUM)))
+
+        ga.replace_dnas(mutated_dnas)
+        if counter % 1000 == 0:
+            # ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
+            # for dna_index in ranking[int(ga.group_size*0.1):]:
+            for dna_index in range(ga.group_size):
+                ga.dna_group[dna_index] = ga.new_dna()
+            counter = 0
+            print("reloaded DNAs")
+
+        ga.replace_dnas(elite_dnas)
+        score_list = ga.scores(ga.dna_group)
+        after_score = min(score_list)
+
+        if round(after_score, 3) == 803.26:
+            print(f"{no_progress} min: ", round(after_score, 3), "km")
+            return True
+
+        if no_progress % 200 == 0:
+            print(f"{no_progress} min: ", round(after_score, 3), "km")
+
+        if before_score > after_score:
+            no_progress = 0
+
+        before_score = after_score
+
+if not GROUP_SIZE % CLUSTER == 0:
+    raise ValueError
 
 service = WriteLogService()
 service.make_log_directory()
@@ -35,45 +85,27 @@ with open(DATASET_PATH, encoding="utf-8") as f:
 
 temple_group = temple.TempleGroup(
     temple_group, start_id=33, goal_id=33)
-ga = Ga(temple_group, GROUP_SIZE)
+mother_ga = Ga(temple_group, GROUP_SIZE)
 
 start_time = time.time()
-score_list = ga.scores(ga.dna_group)
-before_score = min(score_list)
-counter = 0
-while True:
-    counter += 1
-    if counter == STOP_TRIGGER:
+
+dna_index = 0
+for cluster_num in range(CLUSTER):
+    print("\ncluster:", cluster_num)
+    ga = Ga(temple_group, GROUP_SIZE//CLUSTER)
+    if is_exit:
         break
 
-    elite_dnas = ga.elite_dnas(score_list, ELITE_NUM)
+    if hoge(ga):
+        is_exit = True
 
-    mutated_dnas = []
-    mutated_dnas.extend(ga.mutation(ga.tournament(score_list, MUTATION_NUM)))
-    mutated_dnas.extend(ga.inversus(ga.tournament(score_list, INVERSUS_NUM)))
-    mutated_dnas.extend(ga.translocation(
-        ga.tournament(score_list, TRANSLOCATION_NUM)))
-    mutated_dnas.extend(ga.cross(ga.tournament(score_list, CROSS_NUM)))
+    for dna in ga.dna_group:
+        mother_ga.dna_group[dna_index] = dna
+        dna_index += 1
 
-    ga.replace_dnas(mutated_dnas)
-    ga.replace_dnas(elite_dnas)
-    score_list = ga.scores(ga.dna_group)
-    after_score = min(score_list)
-
-    if round(after_score, 3) == 803.26:
-        print(f"{counter} min: ", round(after_score, 3), "km")
-        break
-
-    if counter % 200 == 0:
-        ranking = sorted(range(len(score_list)), key=score_list.__getitem__)
-        for dna_index in ranking[int(ga.group_size*0.4):]:
-            ga.dna_group[dna_index] = ga.new_dna()
-        print(f"{counter} min: ", round(after_score, 3), "km")
-
-    if before_score > after_score:
-        counter = 0
-
-    before_score = after_score
+print("mother ga")
+ga = mother_ga
+hoge(ga)
 
 print("\nDone\n")
 

@@ -25,3 +25,4 @@ class WriteLogService:
                 line += ",".join(list(map(str, dna_group[dna_i])))
                 line += "\n"
                 f.write(line)
+        print("writed log file: ", path)
