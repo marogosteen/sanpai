@@ -11,7 +11,7 @@ class WriteLogService:
         if not os.path.exists(self.path):
             os.mkdir(self.path)
 
-    def write_log(self, dna_group, score_list, ranking):
+    def write_log(self, dna_group: list, score_list: list, ranking: list):
         num = 1
         path = self.path+f"{num}.txt"
         while os.path.exists(path):

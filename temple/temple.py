@@ -12,6 +12,8 @@ class Temple():
     ) -> None:
         self.id = str(id).zfill(self.zfill_size)
         self.name = name
+        self.latitude = latitude
+        self.longitude = longitude
         # TODO change 34 to average
         radian = 2 * math.pi * 34 / MAX_DEGREES
         self.x = EARTH_CIRCUMFERENCE * longitude / \

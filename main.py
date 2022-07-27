@@ -113,6 +113,16 @@ scores = ga.scores(ga.dna_group, selection=False)
 ranking = sorted(range(len(scores)), key=scores.__getitem__)
 service.write_log(ga.dna_group, scores, ranking)
 
+best_dna = ga.dna_group[ranking[0]]
+
+with open("result/result.csv", "w") as f:
+    t_ = temple_group[32]
+    f.write(f"{t_.name},{t_.latitude},{t_.longitude}\n")
+    for id in best_dna:
+        t = temple_group[id-1]
+        f.write(f"{t.name},{t.latitude},{t.longitude}\n")
+    f.write(f"{t_.name},{t_.latitude},{t_.longitude}\n")
+
 print(
     f"\nsec: {round(time.time() - start_time, 1)}",
     f"elite num: {ELITE_NUM}",
